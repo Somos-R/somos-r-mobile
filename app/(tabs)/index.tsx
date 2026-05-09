@@ -1,4 +1,4 @@
-import { CheckCircle, ClipboardList, Clock, Plus, Recycle, XCircle } from 'lucide-react-native';
+import { CheckCircle, ClipboardList, Clock, Plus, Recycle, ScanLine, XCircle } from 'lucide-react-native';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import apiClient from '@/lib/apiClient';
 import { useAuthStore } from '@/stores/authStore';
 import type { BackendUser } from '@/types/auth.types';
+import { useRouter } from 'expo-router';
 
 const GREEN = '#059669';
 
@@ -23,6 +24,7 @@ export default function HomeScreen() {
   const user = useAuthStore((s) => s.user);
   const updateUser = useAuthStore((s) => s.updateUser);
   const logout = useAuthStore((s) => s.logout);
+  const router = useRouter();
 
   const [refreshing, setRefreshing] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(false);
@@ -87,6 +89,20 @@ export default function HomeScreen() {
         <TouchableOpacity style={s.cta} activeOpacity={0.85}>
           <Plus size={22} color="#fff" />
           <Text style={s.ctaText}>Solicitar recolección</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={s.eduCard}
+          activeOpacity={0.8}
+          onPress={() => router.push('/identificar-material')}
+        >
+          <View style={s.eduIconWrap}>
+            <ScanLine size={22} color={GREEN} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.eduTitle}>Identificar material</Text>
+            <Text style={s.eduSubtitle}>Toma una foto para saber si es reciclable</Text>
+          </View>
         </TouchableOpacity>
 
         <Text style={s.sectionTitle}>Solicitudes recientes</Text>
@@ -230,6 +246,28 @@ const s = StyleSheet.create({
     marginBottom: 36,
   },
   ctaText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
+  eduCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    marginBottom: 28,
+    borderWidth: 1.5,
+    borderColor: '#d1fae5',
+  },
+  eduIconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: '#ecfdf5',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  eduTitle: { fontSize: 15, fontWeight: '600', color: '#111827' },
+  eduSubtitle: { fontSize: 12, color: '#6b7280', marginTop: 2 },
   sectionTitle: { fontSize: 16, fontWeight: '600', color: '#374151', marginBottom: 20 },
   empty: { alignItems: 'center', paddingVertical: 48, gap: 12 },
   emptyTitle: { fontSize: 16, fontWeight: '600', color: '#6b7280' },

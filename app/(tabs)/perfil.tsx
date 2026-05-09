@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
-import { CreditCard, LogOut, Mail, MapPin, Pencil, Phone, ScanLine, User, X } from 'lucide-react-native';
+import { CreditCard, LogOut, Mail, MapPin, Pencil, Phone, User, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
@@ -294,23 +294,6 @@ export default function PerfilScreen() {
           )
         )}
 
-        {/* Módulo educativo — solo ciudadanos */}
-        {!editing && user?.user_type_code === 'citizen' && (
-          <TouchableOpacity
-            style={s.eduBtn}
-            onPress={() => router.push('/identificar-material')}
-            activeOpacity={0.7}
-          >
-            <View style={s.eduIconWrap}>
-              <ScanLine size={20} color={GREEN} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={s.eduTitle}>Identificar material</Text>
-              <Text style={s.eduSubtitle}>Toma una foto para saber si es reciclable</Text>
-            </View>
-          </TouchableOpacity>
-        )}
-
         {/* Sección seguridad */}
         {!editing && (
           <View style={s.section}>
@@ -485,31 +468,6 @@ const s = StyleSheet.create({
     paddingHorizontal: 28,
   },
   logoutText: { color: '#ef4444', fontWeight: '600', fontSize: 15 },
-  eduBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  eduIconWrap: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: '#ecfdf5',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  eduTitle: { fontSize: 15, fontWeight: '600', color: '#111827' },
-  eduSubtitle: { fontSize: 12, color: '#6b7280', marginTop: 2 },
 });
 
 const r = StyleSheet.create({
