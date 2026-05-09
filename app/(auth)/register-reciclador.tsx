@@ -1,18 +1,341 @@
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
-import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+import { Eye, EyeOff } from 'lucide-react-native';
+import { useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { z } from 'zod';
+
+import apiClient from '@/lib/apiClient';
+import { useAuthStore } from '@/stores/authStore';
+import type { BackendUser } from '@/types/auth.types';
+
+const schema = z
+  .object({
+    nombre: z.string().min(2, 'Ingresa tu nombre completo'),
+    cedula: z
+      .string()
+      .min(6, 'Mínimo 6 dígitos')
+      .max(10, 'Máximo 10 dígitos')
+      .regex(/^\d+$/, 'Solo dígitos'),
+    email: z.string().email('Email inválido'),
+    telefono: z
+      .string()
+      .length(10, 'El teléfono debe tener 10 dígitos')
+      .regex(/^\d+$/, 'Solo dígitos'),
+    contrasena: z.string().min(8, 'Mínimo 8 caracteres'),
+    confirmarContrasena: z.string(),
+    aceptaTerminos: z.boolean().refine((v) => v, 'Debes aceptar los términos'),
+  })
+  .refine((d) => d.contrasena === d.confirmarContrasena, {
+    message: 'Las contraseñas no coinciden',
+    path: ['confirmarContrasena'],
+  });
+
+type FormData = z.infer<typeof schema>;
+
+function parseJwtPayload(token: string): { sub?: string } {
+  try {
+    const base64 = token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64));
+  } catch {
+    return {};
+  }
+}
 
 export default function RegisterRecicladorScreen() {
   const router = useRouter();
+  const setAuth = useAuthStore((s) => s.setAuth);
+
+  const [showPass, setShowPass] = useState(false);
+  const [showConfirmPass, setShowConfirmPass] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+    mode: 'onChange',
+    defaultValues: { aceptaTerminos: false },
+  });
+
+  async function onSubmit(data: FormData) {
+    setLoading(true);
+    try {
+      await apiClient.post('/auth/register', {
+        user_type_code: 'recycler',
+        full_name: data.nombre,
+        email: data.email,
+        phone: data.telefono,
+        id_type: 'CC',
+        id_number: data.cedula,
+        password: data.contrasena,
+        association_id: null,
+      });
+
+      const loginResp = await apiClient.post('/auth/login', {
+        email: data.email,
+        password: data.contrasena,
+      });
+
+      const token: string = loginResp.data.access_token;
+      const { sub } = parseJwtPayload(token);
+
+      if (!sub) throw new Error('Token inválido');
+
+      const userResp = await apiClient.get(`/users/${sub}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const user: BackendUser = userResp.data;
+      setAuth(user, token);
+      router.replace('/(tabs)');
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const msg =
+        error?.response?.data?.detail ??
+        error?.message ??
+        'Ocurrió un error al registrarte. Intenta de nuevo.';
+      const title =
+        status === 409 ? 'Email o cédula ya registrados' : `Error ${status ?? '(sin respuesta)'}`;
+      Alert.alert(title, msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <SafeAreaView className="flex-1 bg-white items-center justify-center px-6">
-      <Text className="text-4xl mb-4">🚧</Text>
-      <Text className="text-xl font-bold text-gray-800 text-center">Próximamente</Text>
-      <Text className="text-sm text-gray-500 text-center mt-2">
-        El registro de recicladores estará disponible en el Sprint 4.
-      </Text>
-      <TouchableOpacity onPress={() => router.back()} className="mt-6 bg-primary-600 px-6 py-3 rounded-xl">
-        <Text className="text-white font-semibold">Volver</Text>
-      </TouchableOpacity>
+    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          className="flex-1 px-6"
+          contentContainerStyle={{ paddingTop: 16, paddingBottom: 32 }}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <Text className="text-gray-500 text-sm mb-6">
+            Crea tu cuenta como reciclador para gestionar tus recolecciones.
+          </Text>
+
+          <Field label="Nombre completo" error={errors.nombre?.message}>
+            <Controller
+              control={control}
+              name="nombre"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  className={inputClass(!!errors.nombre)}
+                  placeholder="Ej: Carlos Mendoza"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                />
+              )}
+            />
+          </Field>
+
+          <Field label="Número de cédula" error={errors.cedula?.message}>
+            <Controller
+              control={control}
+              name="cedula"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  className={inputClass(!!errors.cedula)}
+                  placeholder="Ej: 80234567"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  keyboardType="number-pad"
+                  maxLength={10}
+                  returnKeyType="next"
+                />
+              )}
+            />
+          </Field>
+
+          <Field label="Email" error={errors.email?.message}>
+            <Controller
+              control={control}
+              name="email"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  className={inputClass(!!errors.email)}
+                  placeholder="tucorreo@ejemplo.com"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  returnKeyType="next"
+                />
+              )}
+            />
+          </Field>
+
+          <Field label="Teléfono" error={errors.telefono?.message}>
+            <Controller
+              control={control}
+              name="telefono"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  className={inputClass(!!errors.telefono)}
+                  placeholder="3001234567"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  keyboardType="phone-pad"
+                  maxLength={10}
+                  returnKeyType="next"
+                />
+              )}
+            />
+          </Field>
+
+          <Field label="Contraseña" error={errors.contrasena?.message}>
+            <View className="relative">
+              <Controller
+                control={control}
+                name="contrasena"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    className={inputClass(!!errors.contrasena)}
+                    placeholder="Mínimo 8 caracteres"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    secureTextEntry={!showPass}
+                    returnKeyType="next"
+                  />
+                )}
+              />
+              <TouchableOpacity
+                onPress={() => setShowPass((p) => !p)}
+                style={{ position: 'absolute', right: 14, top: 12 }}
+              >
+                {showPass ? <EyeOff size={20} color="#9ca3af" /> : <Eye size={20} color="#9ca3af" />}
+              </TouchableOpacity>
+            </View>
+          </Field>
+
+          <Field label="Confirmar contraseña" error={errors.confirmarContrasena?.message}>
+            <View className="relative">
+              <Controller
+                control={control}
+                name="confirmarContrasena"
+                render={({ field: { onChange, onBlur, value } }) => (
+                  <TextInput
+                    className={inputClass(!!errors.confirmarContrasena)}
+                    placeholder="Repite tu contraseña"
+                    onBlur={onBlur}
+                    onChangeText={onChange}
+                    value={value}
+                    secureTextEntry={!showConfirmPass}
+                    returnKeyType="done"
+                  />
+                )}
+              />
+              <TouchableOpacity
+                onPress={() => setShowConfirmPass((p) => !p)}
+                style={{ position: 'absolute', right: 14, top: 12 }}
+              >
+                {showConfirmPass ? (
+                  <EyeOff size={20} color="#9ca3af" />
+                ) : (
+                  <Eye size={20} color="#9ca3af" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </Field>
+
+          <Controller
+            control={control}
+            name="aceptaTerminos"
+            render={({ field: { onChange, value } }) => (
+              <TouchableOpacity
+                onPress={() => onChange(!value)}
+                className="flex-row items-start gap-3 mb-6"
+              >
+                <View
+                  className={`w-5 h-5 rounded border-2 mt-0.5 items-center justify-center ${
+                    value ? 'bg-primary-600 border-primary-600' : 'border-gray-300 bg-white'
+                  }`}
+                >
+                  {value && <Text className="text-white text-xs font-bold">✓</Text>}
+                </View>
+                <Text className="text-sm text-gray-600 flex-1">
+                  Acepto los{' '}
+                  <Text className="text-primary-600 font-semibold">términos y condiciones</Text> y
+                  la{' '}
+                  <Text className="text-primary-600 font-semibold">política de privacidad</Text>
+                </Text>
+              </TouchableOpacity>
+            )}
+          />
+          {errors.aceptaTerminos && (
+            <Text className="text-red-500 text-xs -mt-4 mb-4">{errors.aceptaTerminos.message}</Text>
+          )}
+
+          <TouchableOpacity
+            onPress={handleSubmit(onSubmit)}
+            disabled={!isValid || loading}
+            className={`rounded-2xl py-4 items-center ${isValid && !loading ? 'bg-primary-600' : 'bg-gray-200'}`}
+          >
+            {loading ? (
+              <ActivityIndicator color="white" />
+            ) : (
+              <Text className={`font-bold text-base ${isValid ? 'text-white' : 'text-gray-400'}`}>
+                Crear cuenta
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity onPress={() => router.back()} className="items-center mt-4 py-2">
+            <Text className="text-gray-500 text-sm">¿Ya tienes cuenta? Inicia sesión</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
+}
+
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <View className="mb-4">
+      <Text className="text-sm font-semibold text-gray-700 mb-1.5">{label}</Text>
+      {children}
+      {error && <Text className="text-red-500 text-xs mt-1">{error}</Text>}
+    </View>
+  );
+}
+
+function inputClass(hasError: boolean) {
+  return `bg-gray-50 border rounded-xl px-4 py-3 text-gray-900 text-sm ${
+    hasError ? 'border-red-400' : 'border-gray-200'
+  }`;
 }
