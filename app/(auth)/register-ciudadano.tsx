@@ -21,10 +21,16 @@ import LocationPicker from '@/components/auth/LocationPicker';
 import apiClient from '@/lib/apiClient';
 import { isInsideCoverage } from '@/lib/usmeCoverage';
 import { useAuthStore } from '@/stores/authStore';
+import type { BackendUser } from '@/types/auth.types';
 
 const schema = z
   .object({
     nombre: z.string().min(2, 'Ingresa tu nombre completo'),
+    cedula: z
+      .string()
+      .min(6, 'Mínimo 6 dígitos')
+      .max(10, 'Máximo 10 dígitos')
+      .regex(/^\d+$/, 'Solo dígitos'),
     email: z.string().email('Email inválido'),
     telefono: z
       .string()
@@ -78,24 +84,40 @@ export default function RegisterCiudadanoScreen() {
   async function onSubmit(data: FormData) {
     setLoading(true);
     try {
-      const payload = {
+      const registerPayload = {
+        user_type_code: 'citizen',
         full_name: data.nombre,
         email: data.email,
         phone: data.telefono,
+        id_type: 'CC',
+        id_number: data.cedula,
         address: data.direccion,
         password: data.contrasena,
-        lat: coords?.lat ?? 0,
-        lng: coords?.lng ?? 0,
+        latitude: coords?.lat ?? null,
+        longitude: coords?.lng ?? null,
       };
 
-      const response = await apiClient.post('/api/v1/auth/register', payload);
-      setAuth(response.data.user, response.data.token);
+      const registerResp = await apiClient.post('/api/v1/auth/register', registerPayload);
+
+      const loginResp = await apiClient.post('/api/v1/auth/login', {
+        email: data.email,
+        password: data.contrasena,
+      });
+
+      const user: BackendUser = {
+        ...registerResp.data,
+        address: data.direccion,
+        latitude: coords?.lat ?? null,
+        longitude: coords?.lng ?? null,
+      };
+
+      setAuth(user, loginResp.data.access_token);
       router.replace('/(tabs)');
     } catch (error: any) {
-      const msg =
-        error?.response?.data?.detail ?? 'Ocurrió un error al registrarte. Intenta de nuevo.';
-      const isConflict = error?.response?.status === 400;
-      Alert.alert(isConflict ? 'Datos inválidos' : 'Error', msg);
+      const status = error?.response?.status;
+      const msg = error?.response?.data?.detail ?? 'Ocurrió un error al registrarte. Intenta de nuevo.';
+      const title = status === 409 ? 'Email o cédula ya registrados' : 'Error';
+      Alert.alert(title, msg);
     } finally {
       setLoading(false);
     }
@@ -129,6 +151,25 @@ export default function RegisterCiudadanoScreen() {
                   onChangeText={onChange}
                   value={value}
                   autoCapitalize="words"
+                  returnKeyType="next"
+                />
+              )}
+            />
+          </Field>
+
+          <Field label="Número de cédula" error={errors.cedula?.message}>
+            <Controller
+              control={control}
+              name="cedula"
+              render={({ field: { onChange, onBlur, value } }) => (
+                <TextInput
+                  className={inputClass(!!errors.cedula)}
+                  placeholder="Ej: 1023456789"
+                  onBlur={onBlur}
+                  onChangeText={onChange}
+                  value={value}
+                  keyboardType="number-pad"
+                  maxLength={10}
                   returnKeyType="next"
                 />
               )}

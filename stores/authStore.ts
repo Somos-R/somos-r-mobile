@@ -1,13 +1,11 @@
 import { create } from 'zustand';
-import type { Citizen, Recycler } from '@/types/auth.types';
-
-type AuthUser = Citizen | Recycler;
+import type { BackendUser } from '@/types/auth.types';
 
 interface AuthState {
-  user: AuthUser | null;
+  user: BackendUser | null;
   token: string | null;
   isAuthenticated: boolean;
-  setAuth: (user: AuthUser, token: string) => void;
+  setAuth: (user: BackendUser, token: string) => void;
   logout: () => void;
 }
 

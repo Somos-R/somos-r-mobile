@@ -8,6 +8,27 @@ export type UserStatus = 'active' | 'inactive' | 'suspended'
 export type VehicleType = 'bike' | 'cart' | 'motorcycle' | 'truck'
 
 // -------------------------------------------
+// Tipo que refleja la respuesta real del backend
+// Basado en UserDetailResponse del servidor
+// -------------------------------------------
+export interface BackendUser {
+  id: string
+  email: string
+  full_name: string
+  phone: string | null
+  id_type: string
+  id_number: string
+  user_type_code: string
+  role_code: string | null
+  created_at: string
+  address?: string | null
+  latitude?: number | null
+  longitude?: number | null
+  verification_status?: string | null
+  association_id?: string | null
+}
+
+// -------------------------------------------
 // Campos base compartidos por todos los actores
 // -------------------------------------------
 export interface BaseUser {
