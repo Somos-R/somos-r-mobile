@@ -1,0 +1,18 @@
+import { useRouter } from 'expo-router';
+import { SafeAreaView, Text, TouchableOpacity, View } from 'react-native';
+
+export default function RegisterRecicladorScreen() {
+  const router = useRouter();
+  return (
+    <SafeAreaView className="flex-1 bg-white items-center justify-center px-6">
+      <Text className="text-4xl mb-4">🚧</Text>
+      <Text className="text-xl font-bold text-gray-800 text-center">Próximamente</Text>
+      <Text className="text-sm text-gray-500 text-center mt-2">
+        El registro de recicladores estará disponible en el Sprint 4.
+      </Text>
+      <TouchableOpacity onPress={() => router.back()} className="mt-6 bg-primary-600 px-6 py-3 rounded-xl">
+        <Text className="text-white font-semibold">Volver</Text>
+      </TouchableOpacity>
+    </SafeAreaView>
+  );
+}
