@@ -1,11 +1,12 @@
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { Camera, CheckCircle2, Image as ImageIcon, RotateCcw, XCircle } from 'lucide-react-native';
+import { Activity, Camera, ChartBarBig, CheckCircle2, Cpu, Database, Image as ImageIcon, RotateCcw, X, XCircle } from 'lucide-react-native';
 import { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   Image,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -16,12 +17,20 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const GREEN = '#059669';
 
+type ModelMetrics = {
+  accuracy: number;
+  f1_score: number;
+  ram_mb: number;
+  inference_ms: number;
+};
+
 type MaterialResult = {
   material_type: string;
   category: string;
   recyclable: boolean;
   description: string;
   co2_saved_kg: number;
+  metrics: ModelMetrics;
 };
 
 type ScreenState = 'idle' | 'analyzing' | 'result';
@@ -34,6 +43,7 @@ const MOCK_RESULTS: MaterialResult[] = [
     recyclable: true,
     description: 'Botellas y envases de plástico transparente. Muy valorado en centros de acopio.',
     co2_saved_kg: 0.4,
+    metrics: { accuracy: 0.96, f1_score: 0.94, ram_mb: 48, inference_ms: 287 },
   },
   {
     material_type: 'Cartón',
@@ -41,6 +51,7 @@ const MOCK_RESULTS: MaterialResult[] = [
     recyclable: true,
     description: 'Cajas y embalajes de cartón. Alta demanda en centros de reciclaje.',
     co2_saved_kg: 0.6,
+    metrics: { accuracy: 0.93, f1_score: 0.91, ram_mb: 52, inference_ms: 314 },
   },
   {
     material_type: 'Vidrio',
@@ -48,6 +59,7 @@ const MOCK_RESULTS: MaterialResult[] = [
     recyclable: true,
     description: 'Botellas y frascos de vidrio. 100% reciclable y reutilizable.',
     co2_saved_kg: 0.3,
+    metrics: { accuracy: 0.91, f1_score: 0.89, ram_mb: 45, inference_ms: 298 },
   },
   {
     material_type: 'Metal / Lata',
@@ -55,6 +67,7 @@ const MOCK_RESULTS: MaterialResult[] = [
     recyclable: true,
     description: 'Latas de aluminio y acero. Uno de los materiales con mayor valor de reciclaje.',
     co2_saved_kg: 0.8,
+    metrics: { accuracy: 0.97, f1_score: 0.96, ram_mb: 50, inference_ms: 265 },
   },
   {
     material_type: 'Residuo orgánico',
@@ -62,6 +75,7 @@ const MOCK_RESULTS: MaterialResult[] = [
     recyclable: false,
     description: 'Residuos de comida u origen orgánico. No apto para recolección de reciclaje.',
     co2_saved_kg: 0,
+    metrics: { accuracy: 0.88, f1_score: 0.85, ram_mb: 44, inference_ms: 301 },
   },
 ];
 
@@ -198,6 +212,8 @@ function ResultView({
   onReset: () => void;
   onCreateSolicitud: () => void;
 }) {
+  const [showMetrics, setShowMetrics] = useState(false);
+
   return (
     <View>
       {imageUri && <Image source={{ uri: imageUri }} style={s.resultImage} />}
@@ -215,6 +231,14 @@ function ResultView({
               {result.recyclable ? '✓ Reciclable' : '✗ No reciclable'}
             </Text>
           </View>
+          <TouchableOpacity
+            style={s.metricsBtn}
+            onPress={() => setShowMetrics(true)}
+            activeOpacity={0.7}
+          >
+            <ChartBarBig size={16} color="#6b7280" />
+            <Text style={s.metricsBtnText}>Métricas</Text>
+          </TouchableOpacity>
         </View>
 
         <Text style={s.description}>{result.description}</Text>
@@ -242,6 +266,96 @@ function ResultView({
         <RotateCcw size={18} color={GREEN} />
         <Text style={s.secondaryBtnText}>Analizar otro residuo</Text>
       </TouchableOpacity>
+
+      <MetricsModal
+        metrics={result.metrics}
+        visible={showMetrics}
+        onClose={() => setShowMetrics(false)}
+      />
+    </View>
+  );
+}
+
+function MetricsModal({
+  metrics,
+  visible,
+  onClose,
+}: {
+  metrics: ModelMetrics;
+  visible: boolean;
+  onClose: () => void;
+}) {
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={m.overlay}>
+        <View style={m.sheet}>
+          <View style={m.header}>
+            <Text style={m.title}>Métricas del modelo</Text>
+            <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+              <X size={20} color="#6b7280" />
+            </TouchableOpacity>
+          </View>
+
+          <Text style={m.subtitle}>Rendimiento de la última clasificación</Text>
+
+          <View style={m.grid}>
+            <MetricCard
+              icon={<ChartBarBig size={20} color="#6366f1" />}
+              label="Accuracy"
+              value={`${(metrics.accuracy * 100).toFixed(1)}%`}
+              bg="#eef2ff"
+              color="#6366f1"
+            />
+            <MetricCard
+              icon={<Activity size={20} color={GREEN} />}
+              label="F1 Score"
+              value={`${(metrics.f1_score * 100).toFixed(1)}%`}
+              bg="#ecfdf5"
+              color={GREEN}
+            />
+            <MetricCard
+              icon={<Database size={20} color="#f59e0b" />}
+              label="RAM"
+              value={`${metrics.ram_mb} MB`}
+              bg="#fffbeb"
+              color="#f59e0b"
+            />
+            <MetricCard
+              icon={<Cpu size={20} color="#ec4899" />}
+              label="Inferencia"
+              value={`${metrics.inference_ms} ms`}
+              bg="#fdf2f8"
+              color="#ec4899"
+            />
+          </View>
+
+          <Text style={m.note}>
+            Valores simulados. Se actualizarán con el modelo real en Sprint 5.
+          </Text>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function MetricCard({
+  icon,
+  label,
+  value,
+  bg,
+  color,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  bg: string;
+  color: string;
+}) {
+  return (
+    <View style={[m.card, { backgroundColor: bg }]}>
+      <View style={m.cardIcon}>{icon}</View>
+      <Text style={[m.cardValue, { color }]}>{value}</Text>
+      <Text style={m.cardLabel}>{label}</Text>
     </View>
   );
 }
@@ -334,4 +448,60 @@ const s = StyleSheet.create({
     paddingHorizontal: 14,
   },
   co2Text: { fontSize: 13, color: '#166534', lineHeight: 18 },
+  metricsBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    paddingVertical: 5,
+    paddingHorizontal: 9,
+  },
+  metricsBtnText: { fontSize: 11, color: '#6b7280', fontWeight: '600' },
+});
+
+const m = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  sheet: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  title: { fontSize: 17, fontWeight: 'bold', color: '#111827' },
+  subtitle: { fontSize: 13, color: '#9ca3af', marginBottom: 20 },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+    marginBottom: 20,
+  },
+  card: {
+    width: '47%',
+    borderRadius: 14,
+    padding: 14,
+    alignItems: 'center',
+    gap: 6,
+  },
+  cardIcon: { marginBottom: 2 },
+  cardValue: { fontSize: 22, fontWeight: 'bold' },
+  cardLabel: { fontSize: 12, color: '#6b7280', fontWeight: '500' },
+  note: { fontSize: 11, color: '#d1d5db', textAlign: 'center', fontStyle: 'italic' },
 });
