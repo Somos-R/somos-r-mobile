@@ -1,23 +1,11 @@
 import { useRouter } from 'expo-router';
 import { House, Recycle } from 'lucide-react-native';
-import { Alert, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const GREEN = '#059669';
 
 export default function WelcomeScreen() {
   const router = useRouter();
-
-  function handleRegister() {
-    Alert.alert(
-      '¿Cómo quieres registrarte?',
-      'Selecciona tu tipo de cuenta',
-      [
-        { text: 'Soy Ciudadano', onPress: () => router.push('/(auth)/register-ciudadano') },
-        { text: 'Soy Reciclador', onPress: () => router.push('/(auth)/register-reciclador') },
-        { text: 'Cancelar', style: 'cancel' },
-      ],
-    );
-  }
 
   return (
     <SafeAreaView style={s.container}>
@@ -47,7 +35,7 @@ export default function WelcomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity onPress={handleRegister} style={s.loginLink}>
+        <TouchableOpacity onPress={() => router.push('/(auth)/register-select')} style={s.loginLink}>
           <Text style={s.loginText}>
             ¿No tienes cuenta?{' '}
             <Text style={s.loginHighlight}>Regístrate</Text>
