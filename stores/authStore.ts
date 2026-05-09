@@ -6,6 +6,7 @@ interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   setAuth: (user: BackendUser, token: string) => void;
+  updateUser: (updates: Partial<BackendUser>) => void;
   logout: () => void;
 }
 
@@ -16,6 +17,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   setAuth: (user, token) => {
     globalThis.__authToken = token;
     set({ user, token, isAuthenticated: true });
+  },
+  updateUser: (updates) => {
+    set((state) => ({
+      user: state.user ? { ...state.user, ...updates } : state.user,
+    }));
   },
   logout: () => {
     globalThis.__authToken = undefined;
