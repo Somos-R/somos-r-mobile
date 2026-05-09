@@ -307,8 +307,8 @@ export default function RegisterRecicladorScreen() {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => router.back()} className="items-center mt-4 py-2">
-            <Text className="text-gray-500 text-sm">¿Ya tienes cuenta? Inicia sesión</Text>
+          <TouchableOpacity onPress={() => router.replace('/(auth)/login')} className="items-center mt-4 py-2">
+            <Text className="text-gray-500 text-sm">¿Ya tienes cuenta? <Text className="text-primary-600 font-semibold">Inicia sesión</Text></Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>

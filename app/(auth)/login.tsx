@@ -168,8 +168,21 @@ export default function LoginScreen() {
             )}
           </TouchableOpacity>
 
-          <TouchableOpacity onPress={() => router.back()} className="items-center mt-4 py-2">
-            <Text className="text-gray-500 text-sm">¿No tienes cuenta? Regístrate</Text>
+          <TouchableOpacity
+            onPress={() =>
+              Alert.alert(
+                '¿Cómo quieres registrarte?',
+                'Selecciona tu tipo de cuenta',
+                [
+                  { text: 'Soy Ciudadano', onPress: () => router.replace('/(auth)/register-ciudadano') },
+                  { text: 'Soy Reciclador', onPress: () => router.replace('/(auth)/register-reciclador') },
+                  { text: 'Cancelar', style: 'cancel' },
+                ],
+              )
+            }
+            className="items-center mt-4 py-2"
+          >
+            <Text className="text-gray-500 text-sm">¿No tienes cuenta? <Text className="text-primary-600 font-semibold">Regístrate</Text></Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
