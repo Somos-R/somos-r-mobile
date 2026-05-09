@@ -1,5 +1,5 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { House, Recycle } from 'lucide-react-native';
 import { SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 const GREEN = '#059669';
@@ -13,7 +13,7 @@ export default function WelcomeScreen() {
 
         <View style={s.header}>
           <View style={s.logoContainer}>
-            <MaterialCommunityIcons name="recycle" size={48} color="#fff" />
+            <Recycle size={48} color="#fff" />
           </View>
           <Text style={s.title}>SOMOS R</Text>
           <Text style={s.subtitle}>Reciclaje inteligente para Usme</Text>
@@ -23,13 +23,13 @@ export default function WelcomeScreen() {
           <Text style={s.question}>¿Cómo quieres usar la app?</Text>
 
           <TouchableOpacity style={[s.btn, s.btnPrimary]} onPress={() => router.push('/(auth)/register-ciudadano')}>
-            <Text style={s.emoji}>🏠</Text>
+            <House size={28} color="#fff" style={s.btnIcon} />
             <Text style={s.btnPrimaryTitle}>Soy Ciudadano</Text>
             <Text style={s.btnPrimarySub}>Solicita recolección de reciclables</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={[s.btn, s.btnSecondary]} onPress={() => router.push('/(auth)/register-reciclador')}>
-            <Text style={s.emoji}>♻️</Text>
+            <Recycle size={28} color={GREEN} style={s.btnIcon} />
             <Text style={s.btnSecondaryTitle}>Soy Reciclador</Text>
             <Text style={s.btnSecondarySub}>Gestiona tus rutas y recolecciones</Text>
           </TouchableOpacity>
@@ -59,7 +59,7 @@ const s = StyleSheet.create({
   btn: { borderRadius: 16, paddingHorizontal: 24, paddingVertical: 20, alignItems: 'center' },
   btnPrimary: { backgroundColor: GREEN },
   btnSecondary: { backgroundColor: '#fff', borderWidth: 2, borderColor: GREEN },
-  emoji: { fontSize: 28, marginBottom: 4 },
+  btnIcon: { marginBottom: 4 },
   btnPrimaryTitle: { color: '#fff', fontWeight: 'bold', fontSize: 17 },
   btnPrimarySub: { color: '#d1fae5', fontSize: 13, marginTop: 2 },
   btnSecondaryTitle: { color: GREEN, fontWeight: 'bold', fontSize: 17 },

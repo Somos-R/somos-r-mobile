@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
+import { Eye, EyeOff } from 'lucide-react-native';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
@@ -210,9 +211,9 @@ export default function RegisterCiudadanoScreen() {
               />
               <TouchableOpacity
                 onPress={() => setShowPass((p) => !p)}
-                className="absolute right-4 top-3"
+                style={{ position: 'absolute', right: 14, top: 12 }}
               >
-                <Text className="text-gray-400">{showPass ? '🙈' : '👁️'}</Text>
+                {showPass ? <EyeOff size={20} color="#9ca3af" /> : <Eye size={20} color="#9ca3af" />}
               </TouchableOpacity>
             </View>
           </Field>
@@ -236,9 +237,9 @@ export default function RegisterCiudadanoScreen() {
               />
               <TouchableOpacity
                 onPress={() => setShowConfirmPass((p) => !p)}
-                className="absolute right-4 top-3"
+                style={{ position: 'absolute', right: 14, top: 12 }}
               >
-                <Text className="text-gray-400">{showConfirmPass ? '🙈' : '👁️'}</Text>
+                {showConfirmPass ? <EyeOff size={20} color="#9ca3af" /> : <Eye size={20} color="#9ca3af" />}
               </TouchableOpacity>
             </View>
           </Field>

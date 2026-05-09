@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import { MapPin, Target } from 'lucide-react-native';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from 'react-native';
 
@@ -32,20 +33,26 @@ export default function LocationPicker({ onLocation }: Props) {
     }
   }
 
+  const GREEN = '#059669';
+  const borderColor = picked ? '#10b981' : GREEN;
+  const bgColor = picked ? '#f0fdf4' : '#fff';
+  const textColor = picked ? '#047857' : GREEN;
+  const label = loading ? 'Obteniendo ubicación...' : picked ? 'Ubicación capturada' : 'Usar mi ubicación actual';
+
   return (
     <TouchableOpacity
       onPress={handlePress}
       disabled={loading}
-      className={`flex-row items-center justify-center gap-2 rounded-xl border-2 px-4 py-3 ${picked ? 'border-primary-500 bg-primary-50' : 'border-primary-600 bg-white'}`}
+      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, borderRadius: 12, borderWidth: 2, borderColor, backgroundColor: bgColor, paddingHorizontal: 16, paddingVertical: 12 }}
     >
       {loading ? (
-        <ActivityIndicator size="small" color="#059669" />
+        <ActivityIndicator size="small" color={GREEN} />
+      ) : picked ? (
+        <MapPin size={18} color={textColor} />
       ) : (
-        <Text className="text-lg">{picked ? '📍' : '🎯'}</Text>
+        <Target size={18} color={textColor} />
       )}
-      <Text className={`font-semibold text-sm ${picked ? 'text-primary-700' : 'text-primary-600'}`}>
-        {loading ? 'Obteniendo ubicación...' : picked ? 'Ubicación capturada' : 'Usar mi ubicación actual'}
-      </Text>
+      <Text style={{ fontWeight: '600', fontSize: 14, color: textColor }}>{label}</Text>
     </TouchableOpacity>
   );
 }
