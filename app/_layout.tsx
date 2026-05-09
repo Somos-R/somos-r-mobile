@@ -45,6 +45,16 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+        <Stack.Screen
+          name="identificar-material"
+          options={{
+            title: 'Identificar Material',
+            headerStyle: { backgroundColor: '#fff' },
+            headerTintColor: '#111827',
+            headerShadowVisible: false,
+            headerBackTitle: 'Volver',
+          }}
+        />
       </Stack>
     </ThemeProvider>
   );
