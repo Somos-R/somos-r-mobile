@@ -2,14 +2,23 @@ import { ClipboardList } from 'lucide-react-native';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useAuthStore } from '@/stores/authStore';
+
 export default function SolicitudesScreen() {
+  const user = useAuthStore((s) => s.user);
+  const isRecycler = user?.user_type_code === 'recycler';
+
   return (
     <SafeAreaView style={s.container} edges={['bottom']}>
       <View style={s.content}>
         <ClipboardList size={52} color="#d1d5db" />
-        <Text style={s.title}>Historial de solicitudes</Text>
+        <Text style={s.title}>
+          {isRecycler ? 'Solicitudes disponibles' : 'Historial de solicitudes'}
+        </Text>
         <Text style={s.text}>
-          Aquí verás todas tus solicitudes de recolección y su estado.
+          {isRecycler
+            ? 'Aquí verás las solicitudes de recolección disponibles en tu zona para atender.'
+            : 'Aquí verás todas tus solicitudes de recolección y su estado.'}
         </Text>
       </View>
     </SafeAreaView>
