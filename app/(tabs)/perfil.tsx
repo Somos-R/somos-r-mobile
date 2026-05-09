@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'expo-router';
-import { LogOut, Mail, MapPin, Pencil, Phone, User, X } from 'lucide-react-native';
+import { CreditCard, LogOut, Mail, MapPin, Pencil, Phone, User, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
@@ -191,6 +191,9 @@ export default function PerfilScreen() {
             <InfoRow icon={<Mail size={18} color="#6b7280" />} label="Email" value={user?.email ?? '—'} />
             {user?.phone && (
               <InfoRow icon={<Phone size={18} color="#6b7280" />} label="Teléfono" value={user.phone} />
+            )}
+            {user?.id_number && (
+              <InfoRow icon={<CreditCard size={18} color="#6b7280" />} label="Cédula" value={user.id_number} />
             )}
             {user?.address && (
               <InfoRow icon={<MapPin size={18} color="#6b7280" />} label="Dirección" value={user.address} />
