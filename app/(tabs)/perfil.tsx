@@ -16,7 +16,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { z } from 'zod';
 
+import LocationPicker from '@/components/auth/LocationPicker';
 import apiClient from '@/lib/apiClient';
+import { isInsideCoverage } from '@/lib/usmeCoverage';
 import { useAuthStore } from '@/stores/authStore';
 
 const GREEN = '#059669';
@@ -39,6 +41,49 @@ export default function PerfilScreen() {
 
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const [editingAddress, setEditingAddress] = useState(false);
+  const [addressText, setAddressText] = useState(user?.address ?? '');
+  const [addressCoords, setAddressCoords] = useState<{ lat: number; lng: number } | null>(
+    user?.latitude && user?.longitude ? { lat: user.latitude, lng: user.longitude } : null,
+  );
+  const [savingAddress, setSavingAddress] = useState(false);
+
+  function handleLocationPick(lat: number, lng: number, address: string) {
+    setAddressCoords({ lat, lng });
+    setAddressText(address);
+    if (!isInsideCoverage(lat, lng)) {
+      Alert.alert(
+        'Fuera de cobertura',
+        'La nueva dirección está fuera de la zona de cobertura de Usme.',
+        [{ text: 'Entendido' }],
+      );
+    }
+  }
+
+  async function onSaveAddress() {
+    if (!user || !addressText.trim()) return;
+    setSavingAddress(true);
+    try {
+      const resp = await apiClient.patch(`/users/${user.id}`, {
+        address: addressText.trim(),
+        latitude: addressCoords?.lat ?? user.latitude,
+        longitude: addressCoords?.lng ?? user.longitude,
+      });
+      updateUser({
+        address: resp.data.address,
+        latitude: resp.data.latitude,
+        longitude: resp.data.longitude,
+      });
+      setEditingAddress(false);
+      Alert.alert('Listo', 'Dirección actualizada correctamente.');
+    } catch (error: any) {
+      const msg = error?.response?.data?.detail ?? 'No se pudo actualizar la dirección.';
+      Alert.alert('Error', msg);
+    } finally {
+      setSavingAddress(false);
+    }
+  }
 
   const {
     control,
@@ -198,8 +243,55 @@ export default function PerfilScreen() {
             {user?.address && (
               <InfoRow icon={<MapPin size={18} color="#6b7280" />} label="Dirección" value={user.address} />
             )}
-            {/* TODO US-0.16: agregar botón "Actualizar dirección" aquí */}
           </View>
+        )}
+
+        {/* Actualizar dirección — US-0.16 */}
+        {!editing && (
+          !editingAddress ? (
+            <TouchableOpacity style={s.addressBtn} onPress={() => {
+              setAddressText(user?.address ?? '');
+              setAddressCoords(user?.latitude && user?.longitude ? { lat: user.latitude, lng: user.longitude } : null);
+              setEditingAddress(true);
+            }} activeOpacity={0.7}>
+              <MapPin size={16} color={GREEN} />
+              <Text style={s.addressBtnText}>Actualizar dirección</Text>
+            </TouchableOpacity>
+          ) : (
+            <View style={s.addressCard}>
+              <Text style={s.formTitle}>Actualizar dirección</Text>
+              <LocationPicker onLocation={handleLocationPick} />
+              <TextInput
+                style={[s.input, { marginTop: 10 }]}
+                value={addressText}
+                onChangeText={setAddressText}
+                placeholder="O ingresa tu dirección manualmente"
+                returnKeyType="done"
+              />
+              <View style={s.formActions}>
+                <TouchableOpacity
+                  style={s.cancelBtn}
+                  onPress={() => setEditingAddress(false)}
+                  activeOpacity={0.7}
+                >
+                  <X size={16} color="#6b7280" />
+                  <Text style={s.cancelText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[s.saveBtn, (!addressText.trim() || savingAddress) && s.saveBtnDisabled]}
+                  onPress={onSaveAddress}
+                  disabled={!addressText.trim() || savingAddress}
+                  activeOpacity={0.8}
+                >
+                  {savingAddress ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={s.saveText}>Guardar</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          )
         )}
 
         {/* Sección seguridad */}
@@ -326,6 +418,30 @@ const s = StyleSheet.create({
   },
   saveBtnDisabled: { backgroundColor: '#d1d5db' },
   saveText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  addressBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 20,
+    borderWidth: 1.5,
+    borderColor: GREEN,
+    borderRadius: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    alignSelf: 'flex-start',
+  },
+  addressBtnText: { color: GREEN, fontWeight: '600', fontSize: 13 },
+  addressCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
   section: { marginBottom: 16 },
   sectionTitle: { fontSize: 13, fontWeight: '600', color: '#9ca3af', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   securityRow: {
