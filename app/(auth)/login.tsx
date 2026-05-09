@@ -56,7 +56,7 @@ export default function LoginScreen() {
   async function onSubmit(data: FormData) {
     setLoading(true);
     try {
-      const loginResp = await apiClient.post('/api/v1/auth/login', {
+      const loginResp = await apiClient.post('/auth/login', {
         email: data.email,
         password: data.contrasena,
       });
@@ -66,7 +66,7 @@ export default function LoginScreen() {
 
       if (!sub) throw new Error('Token inválido');
 
-      const userResp = await apiClient.get(`/api/v1/users/${sub}`, {
+      const userResp = await apiClient.get(`/users/${sub}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

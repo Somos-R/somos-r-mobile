@@ -97,9 +97,9 @@ export default function RegisterCiudadanoScreen() {
         longitude: coords?.lng ?? null,
       };
 
-      const registerResp = await apiClient.post('/api/v1/auth/register', registerPayload);
+      const registerResp = await apiClient.post('/auth/register', registerPayload);
 
-      const loginResp = await apiClient.post('/api/v1/auth/login', {
+      const loginResp = await apiClient.post('/auth/login', {
         email: data.email,
         password: data.contrasena,
       });
@@ -115,8 +115,10 @@ export default function RegisterCiudadanoScreen() {
       router.replace('/(tabs)');
     } catch (error: any) {
       const status = error?.response?.status;
-      const msg = error?.response?.data?.detail ?? 'Ocurrió un error al registrarte. Intenta de nuevo.';
-      const title = status === 409 ? 'Email o cédula ya registrados' : 'Error';
+      const msg = error?.response?.data?.detail
+        ?? error?.message
+        ?? 'Ocurrió un error al registrarte. Intenta de nuevo.';
+      const title = status === 409 ? 'Email o cédula ya registrados' : `Error ${status ?? '(sin respuesta)'}`;
       Alert.alert(title, msg);
     } finally {
       setLoading(false);
