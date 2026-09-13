@@ -4,6 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Flujo de Git — leer primero
 
+> Esta sección está duplicada (con la misma política) en `backend` y `somos-r-web`. Si cambia, actualizarla en los tres repos.
+
 `main` está protegida: solo avanza mediante un Pull Request mergeado, nunca con push directo.
 
 - **Nunca commitear directo en `main`.** Antes de empezar cualquier cambio — incluso uno pequeño — crear o cambiar a una rama (`feature/<slug>`, `fix/<slug>`, `chore/<slug>`).
