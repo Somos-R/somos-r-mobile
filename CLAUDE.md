@@ -15,7 +15,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - React Native + Expo SDK 54, Expo Router
 - NativeWind (Tailwind para RN)
-- TanStack Query v5 (datos de servidor) + Zustand (estado de UI)
+- TanStack Query v5 (datos de servidor); el estado de UI vive en el propio componente o en Context (sin librería de estado global)
 - Axios
 
 ## Comandos
@@ -29,6 +29,10 @@ npx expo start --ios        # abrir en iOS
 npx expo start --web        # abrir en navegador
 ```
 
+## Calidad (CI)
+
+Cada PR corre `.github/workflows/ci.yml`: `quality` (`pnpm typecheck`, `pnpm lint`, `pnpm test`), `audit` (`pnpm audit --prod --audit-level high`) y `secrets` (gitleaks sobre todo el historial). Corre lo mismo en local antes de abrir el PR. Un solo gestor de paquetes: **pnpm** (`pnpm-lock.yaml`; no crear `package-lock.json`). Las pruebas usan `jest-expo` + `@testing-library/react-native` y viven en `__tests__/` en la raíz: **nunca dentro de `app/`**, porque Expo Router lo tomaría como una ruta.
+
 ## Estado actual
 
-Este repo todavía es el template base de Expo (`app/(tabs)/`, sin pantallas propias de Somos R). Antes de construir features nuevas, revisar las Historias de Usuario del Módulo 1 (App Ciudadana) y Módulo 2 (App Reciclador) en el Notion del proyecto.
+Este repo ya no tiene el template de Expo: solo hay una pantalla provisional (`app/index.tsx`) y la de "no existe". Todavía no hay pantallas propias de Somos R. Antes de construir features nuevas, revisar las Historias de Usuario del Módulo 1 (App Ciudadana) y Módulo 2 (App Reciclador) en el Notion del proyecto.

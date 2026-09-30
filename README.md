@@ -7,7 +7,6 @@ Aplicaciones moviles para Ciudadanos y Recicladores.
 - React Native + Expo SDK 54
 - NativeWind (Tailwind para RN)
 - TanStack Query v5
-- Zustand
 - Expo Router
 
 ## Instalacion
@@ -38,6 +37,4 @@ npx expo start
 ```
 EXPO_PUBLIC_API_URL=http://192.168.1.X:8000
 EXPO_PUBLIC_MAPBOX_TOKEN=tu_token_aqui
-EXPO_PUBLIC_SUPABASE_URL=https://xxx.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGci...
 ```
