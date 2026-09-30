@@ -24,13 +24,13 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
 
-  # ─── Supply chain: report high/critical advisories in shipped dependencies ─
-  # Informational for now (does not block): today it reports ~58 high/critical findings, all in the
-  # Expo/React Native tooling tree (@expo/cli, react-devtools-core...). Triage them, then remove
-  # `continue-on-error` so this becomes a required check like in the web repo.
+  # ─── Supply chain: fail on high/critical advisories in shipped dependencies ─
+  # Transitive dependencies are pinned to patched versions with `pnpm.overrides` in package.json.
+  # Two `image-size` advisories are ignored on purpose (`pnpm.auditConfig`): it is Metro's build-time
+  # image reader (asset sizes), fed only our own repo files, and image-size 2.x breaks Metro (it
+  # expects the 1.x API). Drop the ignore when Expo/Metro move to a patched image-size.
   audit:
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v7
       - run: corepack enable
